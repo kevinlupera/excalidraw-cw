@@ -1,0 +1,16 @@
+{
+  "name": "excalidraw-cw",
+  "main": "worker/index.ts",
+  "compatibility_date": "2025-04-01",
+  "assets": {
+    "directory": "./excalidraw-app/build",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "durable_objects": {
+    "bindings": [{ "name": "ROOMS", "class_name": "CollabRoom" }]
+  },
+  "migrations": [{ "tag": "v1", "new_classes": ["CollabRoom"] }],
+  "r2_buckets": [{ "binding": "STORAGE", "bucket_name": "excalidraw-cw" }]
+}

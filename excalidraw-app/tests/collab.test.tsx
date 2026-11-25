@@ -49,15 +49,16 @@ vi.mock("../../excalidraw-app/data/firebase.ts", () => {
   };
 });
 
-vi.mock("socket.io-client", () => {
+vi.mock("../collab/CollabSocket", () => {
   return {
-    default: () => {
+    createCollabSocket: () => {
       return {
         close: () => {},
         on: () => {},
         once: () => {},
         off: () => {},
         emit: () => {},
+        id: "test-socket",
       };
     },
   };

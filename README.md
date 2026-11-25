@@ -80,6 +80,49 @@ The app hosted at [excalidraw.com](https://excalidraw.com) is a minimal showcase
 
 We'll be adding these features as drop-in plugins for the npm package in the future.
 
+## Deploy on Cloudflare
+
+The production app, live collaboration, and shared scenes run as one Cloudflare Worker. `wrangler.jsonc` serves the files in `excalidraw-app/build`. One Durable Object per room relays collaboration. An R2 bucket stores encrypted scene documents, image files, and share-link payloads. The Worker only stores and forwards those bytes. The browser encrypts them first.
+
+R2 is the store because a room writes its scene over and over, and image files are binary blobs. KV allows one write per second per key, so those scene saves would be dropped.
+
+This repo does not contain an account id or any secrets. `yarn build:app` reads `.env.production` and writes same-origin `/api` URLs into the bundle.
+
+1. Install dependencies and build the app.
+
+   ```bash
+   yarn install
+   yarn build:app
+   ```
+
+   The build writes `excalidraw-app/build`. `assets.directory` in `wrangler.jsonc` points at that folder.
+
+2. Create the R2 bucket named in `r2_buckets.bucket_name`.
+
+   ```bash
+   yarn wrangler r2 bucket create excalidraw-cw
+   ```
+
+3. Deploy. Wrangler applies the `v1` Durable Object migration for `CollabRoom`.
+
+   ```bash
+   yarn wrangler login
+   yarn wrangler deploy
+   ```
+
+   `yarn wrangler login` is only required when this machine has no Cloudflare token. Leave the account id out of the repo.
+
+4. Open the workers.dev URL that `wrangler deploy` prints. Collaboration and share links use that origin.
+
+Run the same Worker locally. `wrangler dev` uses a local R2 bucket and local Durable Objects, and it does not need a Cloudflare account.
+
+```bash
+yarn build:app
+yarn wrangler dev
+```
+
+`yarn start` loads `.env.development`, which sends collaboration and share requests to `http://127.0.0.1:8787`. Start `yarn wrangler dev` before `yarn start` if you want the Vite dev server to collaborate.
+
 ## Quick start
 
 **Note:** following instructions are for installing the Excalidraw [npm package](https://www.npmjs.com/package/@excalidraw/excalidraw) when integrating Excalidraw into your own app. To run the repository locally for development, please refer to our [Development Guide](https://docs.excalidraw.com/docs/introduction/development).
